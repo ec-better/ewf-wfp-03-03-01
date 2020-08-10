@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.terradue</groupId>
+  <artifactId>ewf-wfp-03-03-01</artifactId>
+  <packaging>pom</packaging>
+  <name>ewf-wfp-03-03-01</name>
+  <parent>
+    <groupId>com.terradue</groupId>
+    <artifactId>ewf-python-parent</artifactId>
+    <version>1.2</version>
+  </parent>
+  <description>Sentinel-2 smoothed and gap-filled NDVI, NDWI, MNDWI, NDBI</description>
+  <version>0.1</version>
+  <properties>
+    <summary>Sentinel-2 smoothed and gap-filled NDVI, NDWI, MNDWI, NDBI</summary>
+    <description>Sentinel-2 smoothed and gap-filled NDVI, NDWI, MNDWI, NDBI</description>
+    <community>ec-better</community>
+    <yumRepo>ec-better</yumRepo>
+  </properties>
+  <scm>
+    <connection>scm:git:ssh://git@github.com/ec-better/ewf-wfp-03-03-01</connection>
+    <developerConnection>scm:git:ssh://git@github.com/ec-better/ewf-wfp-03-03-01</developerConnection>
+    <url>https://github.com/ec-better/ewf-wfp-03-03-01</url>
+    <tag>HEAD</tag>
+  </scm>
+  <profiles>
+    <profile>
+      <id>package-app</id>
+      <activation>
+        <property>
+          <name>env</name>
+          <value>ci</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>rpm-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>generate-rpm</id>
+                <goals>
+                  <goal>rpm</goal>
+                </goals>
+                <configuration>
+                  <!-- Set here the dependencies installed with 'sudo yum install'-->
+                  <requires>
+                    <require>miniconda</require>
+                  </requires>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

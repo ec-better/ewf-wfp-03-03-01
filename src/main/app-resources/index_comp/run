@@ -1,0 +1,58 @@
+#!/opt/anaconda/envs/env_ewf_wfp_03_03_01/bin/python
+
+import os
+import sys
+import string
+import atexit
+
+import cioppy 
+ciop = cioppy.Cioppy()
+    
+# define the exit codes
+SUCCESS = 0
+ERR_RESOLUTION = 10
+ERR_STAGEIN = 20
+ERR_NO_OUTPUT = 30
+
+# add a trap to exit gracefully
+def clean_exit(exit_code):
+    log_level = 'INFO'
+    if exit_code != SUCCESS:
+        log_level = 'ERROR'  
+   
+    msg = {SUCCESS: 'Processing successfully concluded',
+           ERR_RESOLUTION: 'Could not resolve Sentinel-1 product enclosure',
+           ERR_STAGEIN: 'Could not stage-in Sentinel-1 product', 
+           ERR_NO_OUTPUT: "Missing output"
+    }
+ 
+    ciop.log(log_level, msg[exit_code])  
+
+def main():
+        
+    ciop = cioppy.Cioppy()
+    
+    os.chdir(ciop.tmp_dir)
+    
+    aoi = ciop.getparam('aoi')
+   
+    for input in sys.stdin:
+        
+        output_name = os.path.join(ciop.tmp_dir, 
+                                   input.rstrip().split(',')[0])
+
+        ciop.log('INFO', 'Do something')
+        
+        # add processing steps
+        
+        ciop.log('INFO', 'Publish something')
+        ciop.publish(output_name + '.tif', mode='silent')
+
+try:
+    main()
+except SystemExit as e:
+    if e.args[0]:
+        clean_exit(e.args[0])
+    raise
+else:
+    atexit.register(clean_exit, 0)
