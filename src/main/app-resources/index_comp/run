@@ -1,9 +1,20 @@
 #!/opt/anaconda/envs/env_ewf_wfp_03_03_01/bin/python
+#######
+# This node recieves a json file and computes the required index
+# Publishes the index as a COG GeoTiff 
 
 import os
 import sys
 import string
 import atexit
+import json 
+import gdal
+import numpy as np
+
+sys.path.append('/'.join([os.environ['_CIOP_APPLICATION_PATH'], 'util']))
+sys.path.append('../util')
+
+from util import *
 
 import cioppy 
 ciop = cioppy.Cioppy()
@@ -34,19 +45,92 @@ def main():
     
     os.chdir(ciop.tmp_dir)
     
-    aoi = ciop.getparam('aoi')
+    data_pipeline_parameters = dict()    
+    
+    data_pipeline_parameters['username'] = ciop.getparam('_T2Username')
+    data_pipeline_parameters['api_key'] = ciop.getparam('_T2ApiKey')
+
    
     for input in sys.stdin:
         
-        output_name = os.path.join(ciop.tmp_dir, 
-                                   input.rstrip().split(',')[0])
+        #Read dict 
+        input_series_dict = json.loads(input.rstrip())
+        ciop.log('DEBUG', 'Got the input JSON file.')
+        ciop.log('DEBUG', 'Converted input JSON file into dict: {}'.format(input_series_dict))
+        keys=list(input_series_dict.keys())
+        series = dict()
+        
+        ds1=gdal.Open(get_vsi_url(input_series_dict[keys[0]], 
+                                              data_pipeline_parameters['username'], 
+                                              data_pipeline_parameters['api_key']))
+        series[keys[0]]=ds1.GetRasterBand(1).ReadAsArray()
+        geo_transform = ds1.GetGeoTransform()
+        projection = ds1.GetProjection()
+        
 
-        ciop.log('INFO', 'Do something')
         
-        # add processing steps
+        ds2=gdal.Open(get_vsi_url(input_series_dict[keys[1]], 
+                                              data_pipeline_parameters['username'], 
+                                              data_pipeline_parameters['api_key']))
+        series[keys[1]]=ds2.GetRasterBand(1).ReadAsArray()
         
-        ciop.log('INFO', 'Publish something')
-        ciop.publish(output_name + '.tif', mode='silent')
+        
+        index_expression = lambda x,y: -10000 if(x+y)==0 else (x-y)/float(x+y)
+        vfunc = np.vectorize(index_expression, otypes=[np.float])
+
+        result = vfunc(series[keys[0]],series[keys[1]])
+        
+        scale10k = lambda x: -10000 if x==-10000 or x<-1 or x>1 else x*10000
+        vfunc_scale = np.vectorize(scale10k,otypes=[np.int16])
+        result_scaled = vfunc_scale(result)
+        result = None   
+        
+        cols = result_scaled.shape[0]
+        rows = result_scaled.shape[1]
+        
+        
+        base_name = (os.path.basename(input_series_dict[keys[0]])).split('.')[0]
+
+        drv = gdal.GetDriverByName('GTiff')
+
+        ds = drv.Create('temp.tif', 
+                        cols, rows, 
+                        1, 
+                        gdal.GDT_Int16)
+        
+        
+        ds.SetGeoTransform(geo_transform)
+        ds.SetProjection(projection)
+        ds.GetRasterBand(1).WriteArray(result_scaled, 0, 0)
+        ds.GetRasterBand(1).SetDescription('S2_{}_{}_{}'.format(base_name[7:17],input_series_dict['index'], input_series_dict['date']))
+        ###Added Metadata 
+        metadata = dict()
+        
+        metadata['date'] = input_series_dict['date']
+        metadata['index'] = input_series_dict['index']
+        metadata[keys[0]] = input_series_dict[keys[0]]
+        metadata[keys[1]] = input_series_dict[keys[1]]
+        
+        
+        ds.GetRasterBand(1).SetMetadata(metadata)
+        ###Convert to COG
+        
+        translate_options = gdal.TranslateOptions(gdal.ParseCommandLine('-co TILED=YES ' \
+                                                                        '-co COPY_SRC_OVERVIEWS=YES ' \
+                                                                        '-co COMPRESS=LZW '\
+                                                                        '-a_nodata -10000'))
+        gdal.SetConfigOption('COMPRESS_OVERVIEW', 'DEFLATE')
+        ds.BuildOverviews('NEAREST', [2,4,8,16,32])
+        output_name = 'S2_{}_{}_{}.tif'.format(base_name[7:17],input_series_dict['index'], input_series_dict['date'] )
+        gdal.Translate(output_name,
+                       ds,options=translate_options)
+        ds.FlushCache()
+        
+    
+        
+        
+        ciop.log('INFO', 'Publishing {}'.format(output_name))
+        ciop.publish(os.path.join(ciop.tmp_dir,output_name ), metalink=True)
 
 try:
     main()
