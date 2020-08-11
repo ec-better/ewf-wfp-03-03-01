@@ -2,24 +2,63 @@ name: env_ewf_wfp_03_03_01
 channels:
   - r
   - terradue
+  - conda-forge
   - defaults
 dependencies:
   - _libgcc_mutex=0.1=main
   - blas=1.0=mkl
+  - boost-cpp=1.72.0=h7b93d67_2
+  - bzip2=1.0.8=h7b6447c_0
+  - c-ares=1.15.0=h7b6447c_1001
   - ca-certificates=2020.6.24=0
+  - cairo=1.16.0=h3fc0475_1005
   - certifi=2020.6.20=py37_0
+  - cfitsio=3.470=hf0d0db6_5
   - cioppy=0.3.7=py37h72b8f31_0
-  - icu=58.2=he6710b0_3
+  - curl=7.71.1=he644dc0_4
+  - expat=2.2.9=he6710b0_2
+  - fontconfig=2.13.1=h1056068_1002
+  - freetype=2.10.2=h5ab3b9f_0
+  - freexl=1.0.5=h14c3975_0
+  - gdal=3.1.2=py37h518339e_1
+  - geos=3.8.1=he6710b0_0
+  - geotiff=1.6.0=ha04d9d0_1
+  - giflib=5.2.1=h516909a_2
+  - glib=2.65.0=h3eb4bd4_0
+  - hdf4=4.2.13=h3ca952b_2
+  - hdf5=1.10.6=nompi_h3c11f04_101
+  - icu=67.1=he1b5a44_0
   - intel-openmp=2019.4=243
+  - jpeg=9d=h516909a_0
+  - json-c=0.13.1=h1bed415_0
+  - kealib=1.4.13=h33137a7_1
+  - krb5=1.17.1=h173b8e3_0
   - ld_impl_linux-64=2.33.1=h53a641e_7
+  - libcurl=7.71.1=hcdd3856_4
+  - libdap4=3.20.6=h1d1bd15_1
   - libedit=3.1.20191231=h14c3975_1
+  - libev=4.33=h516909a_0
   - libffi=3.3=he6710b0_2
   - libgcc-ng=9.1.0=hdf63c60_0
+  - libgdal=3.1.2=hb2a6f5f_1
   - libgfortran-ng=7.3.0=hdf63c60_0
+  - libiconv=1.15=h63c8f33_5
+  - libkml=1.3.0=hb574062_1011
+  - libnetcdf=4.7.4=nompi_h84807e1_105
+  - libnghttp2=1.41.0=hab1572f_1
+  - libpng=1.6.37=hbc83047_0
+  - libpq=12.3=h5513abc_0
+  - libspatialite=4.3.0a=h57f1b35_1039
+  - libssh2=1.9.0=h1ba5d50_1
   - libstdcxx-ng=9.1.0=hdf63c60_0
-  - libxml2=2.9.10=he19cac6_1
-  - libxslt=1.1.34=hc22bd24_0
-  - lxml=4.5.2=py37hefd8a0e_0
+  - libtiff=4.1.0=h2733197_1
+  - libuuid=2.32.1=h14c3975_1000
+  - libwebp-base=1.1.0=h7b6447c_3
+  - libxcb=1.14=h7b6447c_0
+  - libxml2=2.9.10=h72b56ed_2
+  - libxslt=1.1.33=h572872d_1
+  - lxml=4.5.2=py37he3881c9_0
+  - lz4-c=1.9.2=he6710b0_1
   - mkl=2019.4=243
   - mkl-service=2.3.0=py37he904b0f_0
   - mkl_fft=1.0.14=py37hd81dba3_0
@@ -27,21 +66,43 @@ dependencies:
   - ncurses=6.2=he6710b0_1
   - numpy=1.17.0=py37h7e9f1db_0
   - numpy-base=1.17.0=py37hde5b4d6_0
+  - openjpeg=2.3.1=h981e76c_3
   - openssl=1.1.1g=h7b6447c_0
   - packaging=20.4=py_0
   - pandas=1.1.0=py37he6710b0_0
+  - pcre=8.44=he6710b0_0
   - pip=20.1.1=py37_1
+  - pixman=0.38.0=h516909a_1003
+  - poppler=0.89.0=h4190859_1
+  - poppler-data=0.4.9=0
+  - postgresql=12.3=h8573dbc_0
+  - proj=7.1.0=h966b41f_1
   - pyparsing=2.4.7=py_0
   - python=3.7.7=hcff3b4d_5
   - python-dateutil=2.8.1=py_0
+  - python_abi=3.7=1_cp37m
   - pytz=2020.1=py_0
   - readline=8.0=h7b6447c_0
   - setuptools=49.2.0=py37_0
   - six=1.15.0=py_0
   - sqlite=3.32.3=h62c20be_0
+  - tbb=2020.0=hfd86e86_0
+  - tiledb=2.0.8=h3effe38_0
   - tk=8.6.10=hbc83047_0
+  - tzcode=2020a=h516909a_0
   - wheel=0.34.2=py37_0
+  - xerces-c=3.2.3=hfe33f54_1
+  - xorg-kbproto=1.0.7=h14c3975_1002
+  - xorg-libice=1.0.10=h516909a_0
+  - xorg-libsm=1.2.3=h84519dc_1000
+  - xorg-libx11=1.6.11=h516909a_0
+  - xorg-libxext=1.3.4=h516909a_0
+  - xorg-libxrender=0.9.10=h516909a_1002
+  - xorg-renderproto=0.11.1=h14c3975_1002
+  - xorg-xextproto=7.3.0=h14c3975_1002
+  - xorg-xproto=7.0.31=h14c3975_1007
   - xz=5.2.5=h7b6447c_0
   - zlib=1.2.11=h7b6447c_3
+  - zstd=1.4.5=h9ceee32_0
 prefix: /opt/anaconda/envs/env_ewf_wfp_03_03_01
 

@@ -3,6 +3,7 @@
 import cioppy
 
 ciop = cioppy.Cioppy()
+import urllib.parse as urlparse
 import datetime
 import pandas as pd
 def log_input(reference):
@@ -29,3 +30,45 @@ def name_date_from_enclosure(row):
                                    "%03d"%datetime.datetime.strptime(series['day'], '%Y%m%d').timetuple().tm_yday)
 
     return pd.Series(series)
+
+
+def tojulian(x):
+    """
+    Parses datetime object to julian date string.
+
+    Args:
+       datetime object 
+
+    Returns:
+        x: julian date as string YYYYJJJ
+    """
+
+    return '{}{}'.format(datetime.datetime.strptime(x, '%Y-%m-%d').timetuple().tm_year,
+                                   "%03d"%datetime.datetime.strptime(x, '%Y-%m-%d').timetuple().tm_yday)
+
+
+
+def fromjulian(x):
+    """
+    Parses julian date string to datetime object.
+
+    Args:
+        x: julian date as string YYYYJJJ
+
+    Returns:
+        datetime object parsed from julian date
+    """
+
+    return datetime.datetime.strptime(x, '%Y%j').date()
+
+
+def get_vsi_url(enclosure, user, api_key):
+    
+    parsed_url = urlparse.urlparse(enclosure)
+
+    url = '/vsicurl/%s://%s:%s@%s/api%s' % (list(parsed_url)[0],
+                                            user, 
+                                            api_key, 
+                                            list(parsed_url)[1],
+                                            list(parsed_url)[2])
+    return url

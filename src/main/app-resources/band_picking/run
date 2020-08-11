@@ -1,4 +1,10 @@
 #!/opt/anaconda/envs/env_ewf_wfp_03_03_01/bin/python
+#######
+#This first node is responsible for picking up correct inputs -smoothed and gap-filled S2 tiles
+# dispatching refrences + Index + date in json format to next aggregating nodes
+# Hint: input datapipeline does not generate start-stop date for its products therefore 
+# an exclusing condition applied on results of open-search
+
 
 import os
 import sys
@@ -53,10 +59,11 @@ def main():
     
     search_params['start'] = ciop.getparam('start_date')
     search_params['stop'] = ciop.getparam('end_date')
+    
     search_params['q'] = ciop.getparam('tile_id')
     
     search_params['cat'] =  '!dataitem'
-    search_params['count'] = 500
+    search_params['count'] = 1000
     
 
     
@@ -83,24 +90,42 @@ def main():
     
     
     
-    ### NDVI
+    ### Extract required time interval 
+    start_date_julian = tojulian(search_params['start'][:10])
+    end_date_julian = tojulian(search_params['stop'][:10])
     
-    band=inputs[inputs['name'].str.contains("B04")]
-    b04_sorted=band.sort_values(by=['jday'],inplace=False, ignore_index=True)
+    inputs_time_filtered = inputs.drop(inputs[(inputs['jday'] > end_date_julian) | (inputs['jday'] < start_date_julian)].index).reset_index(drop=True)
     
-    band=inputs[inputs['name'].str.contains("B08")]
-    b08_sorted=band.sort_values(by=['jday'],inplace=False, ignore_index=True)
+    search_input = None
+    inputs = None
     
+    ### 
+    indices=['NDVI','NDWI','MNDWI','NDBI']
+    bands=dict()
+    bands['NDVI']=["B08","B04"]
+    bands['NDWI']=["B03","B08"]
+    bands['MNDWI']=["B03","B11"]
+    bands['NDBI']=["B11","B08"]
+    ###
     
+    for index in indices:
+        
+        
+        band = inputs_time_filtered[inputs_time_filtered['name'].str.contains(bands[index][0])]
+        b1_sorted = band.sort_values(by=['jday'],inplace=False, ignore_index=True)
     
-    date_list = b08_sorted['day'].unique().tolist()
-    for date in date_list:
-        series = dict()
-        series['b04'] = b04_sorted[b04_sorted['day'] == date].enclosure.tolist()[0]
-        series['b08'] = b08_sorted[b08_sorted['day'] == date].enclosure.tolist()[0]
-        series['date'] = date
-        if series['b04'] !='':
-            ciop.publish((json.dumps(series) + '\n'), mode="silent")
+        band = inputs_time_filtered[inputs_time_filtered['name'].str.contains(bands[index][1])]
+        b2_sorted = band.sort_values(by=['jday'],inplace=False, ignore_index=True)
+    
+        date_list = b1_sorted['day'].unique().tolist()
+        for date in date_list:
+            series = dict()
+            series[bands[index][0]] = b1_sorted[b1_sorted['day'] == date].enclosure.tolist()[0]
+            series[bands[index][1]] = b2_sorted[b2_sorted['day'] == date].enclosure.tolist()[0]
+            series['date'] = date
+            series['index'] = index
+            if series[bands[index][1]] !='':
+                ciop.publish((json.dumps(series) + '\n'), mode="silent")
 
     
 

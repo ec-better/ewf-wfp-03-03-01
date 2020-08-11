@@ -7,8 +7,8 @@
             <parameter id='input_end_point' title='Input_end_point' abstract='Data pipeline to select input products' scope="runtime">https://catalog.terradue.com/better-wfp-02-03-02/search</parameter>
             <parameter id='_T2Username' title='Username' abstract='Username' scope="runtime">better-wfp-02-03-02</parameter>
             <parameter id='_T2ApiKey' title='API key' abstract='API key' scope="runtime"></parameter>
-            <parameter id='start_date' title='start_date' abstract='start_date in YYYY-mm-ddTHH:MM:SSZ format' scope="runtime">2019-01-01T00:00:00Z</parameter>
-            <parameter id='end_date' title='end_date' abstract='end_date in YYYY-mm-ddTHH:MM:SSZ format' scope="runtime">2019-01-31T23:59:59.99Z</parameter>
+            <parameter id='start_date' title='start_date' abstract='start_date in YYYY-mm-ddTHH:MM:SSZ format' scope="runtime">2020-07-01T00:00:00Z</parameter>
+            <parameter id='end_date' title='end_date' abstract='end_date in YYYY-mm-ddTHH:MM:SSZ format' scope="runtime">2020-07-10T23:59:59.99Z</parameter>
             <parameter id='tile_id' title='tile_id' abstract='tile_id' scope="runtime">T42SUF</parameter>
         </defaultParameters>
        <defaultJobconf>
@@ -19,9 +19,8 @@
     <jobTemplate id="index_comp">
       <streamingExecutable>/application/index_comp/run</streamingExecutable>
         <defaultParameters>
-            <parameter id='_T2Username' title='Username' abstract='Username' scope="runtime"></parameter>
-            <parameter id='_T2ApiKey' title='API key' abstract='API key' scope="runtime"></parameter>
-            <parameter id='Index' title='Index to be computed' abstract='Index to be computed' scope="runtime">NDVI</parameter>   
+            <parameter id='_T2Username' title='Username' abstract='Username' scope="runtime">better-wfp-02-03-02</parameter>
+            <parameter id='_T2ApiKey' title='API key' abstract='API key' scope="runtime"></parameter>   
           </defaultParameters>
       <defaultJobconf>
           <property id="mapred.task.timeout">172800000</property> <!-- 48 hours -->
