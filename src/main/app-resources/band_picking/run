@@ -78,9 +78,10 @@ def main():
                                       timeout='1200000',
                                       model='GeoTime',
                                       creds=creds))
-    search_input.columns=['self','enclosure','title']
     
-    inputs = search_input[(search_input['title'].str.contains("synthetic") | search_input['title'].str.contains("native"))]
+    #search_input.columns=['self','enclosure','title']
+    
+    inputs = search_input[((search_input['enclosure'].str.contains("tif")) & (search_input['title'].str.contains("synthetic") | search_input['title'].str.contains("native")))]
     inputs = inputs.reset_index(drop=True)
     
     
