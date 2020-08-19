@@ -8,6 +8,7 @@ import urllib.parse as urlparse
 import datetime
 import pandas as pd
 import gdal
+from shapely.geometry import box
 
 
 def log_input(reference):
@@ -76,3 +77,29 @@ def get_vsi_url(enclosure, user, api_key):
                                             list(parsed_url)[1],
                                             list(parsed_url)[2])
     return url
+
+def get_raster_wkt(raster):
+    
+    src = gdal.Open(raster)
+    ulx, xres, xskew, uly, yskew, yres  = src.GetGeoTransform()
+    lrx = ulx + (src.RasterXSize * xres)
+    lry = uly + (src.RasterYSize * yres)
+
+    from osgeo import ogr
+    from osgeo import osr
+
+    # Setup the source projection - you can also import from epsg, proj4...
+    source = osr.SpatialReference()
+    source.ImportFromWkt(src.GetProjection())
+
+    # The target projection
+    target = osr.SpatialReference()
+    target.ImportFromEPSG(4326)
+
+    # Create the transform - this can be used repeatedly
+    transform = osr.CoordinateTransformation(source, target)
+
+    return box(transform.TransformPoint(ulx, lry)[0], 
+       transform.TransformPoint(ulx, lry)[1],
+       transform.TransformPoint(lrx, uly)[0],
+       transform.TransformPoint(lrx, uly)[1]).wkt

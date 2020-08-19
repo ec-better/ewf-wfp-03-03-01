@@ -84,6 +84,7 @@ dependencies:
   - pytz=2020.1=py_0
   - readline=8.0=h7b6447c_0
   - setuptools=49.2.0=py37_0
+  - shapely=1.7.0=py37hc88ce51_3
   - six=1.15.0=py_0
   - sqlite=3.32.3=h62c20be_0
   - tbb=2020.0=hfd86e86_0
