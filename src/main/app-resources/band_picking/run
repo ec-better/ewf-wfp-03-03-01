@@ -71,15 +71,16 @@ def main():
     creds = '{}:{}'.format(data_pipeline_parameters['username'],
                            data_pipeline_parameters['api_key'])
 
-    
+    ciop.log('INFO', 'Looking for dataset')
     search_input = pd.DataFrame(ciop.search(end_point=data_pipeline_parameters['end_point'],
                                       params=search_params,
-                                      output_fields='self,enclosure,title,wkt',
+                                      output_fields='self,enclosure,title',
                                       timeout='1200000',
                                       model='GeoTime',
                                       creds=creds))
     
-    search_input.columns=['self','enclosure','title','wkt']
+    search_input.columns=['self','enclosure','title']
+    ciop.log('INFO', 'Found {} dataset'.format(len(search_input)))
     
     inputs = search_input[((search_input['enclosure'].str.contains("tif")) & (search_input['title'].str.contains("synthetic") | search_input['title'].str.contains("native")))]
     inputs = inputs.reset_index(drop=True)
@@ -118,7 +119,6 @@ def main():
         band = inputs_time_filtered[inputs_time_filtered['name'].str.contains(bands[index][1])]
         b2_sorted = band.sort_values(by=['jday'],inplace=False, ignore_index=True)
         
-        wkt = inputs_time_filtered['wkt'].iloc[0]
     
         date_list = b1_sorted['day'].unique().tolist()
         for date in date_list:
@@ -127,8 +127,7 @@ def main():
             series[bands[index][1]] = b2_sorted[b2_sorted['day'] == date].enclosure.tolist()[0]
             series['date'] = date
             series['index'] = index
-            series['wkt'] = wkt
-            series['series_time_span'] = search_params['start'][:10]+'_'+search_params['stop'][:10]
+            series['series_time_span'] = search_params['start'][:10].replace('-','')+'_'+search_params['stop'][:10].replace('-','')
             
             if series[bands[index][1]] !='':
                 ciop.publish((json.dumps(series) + '\n'), mode="silent")

@@ -55,7 +55,7 @@ def main():
         
         #Read dict 
         input_series_dict = json.loads(input.rstrip())
-        ciop.log('DEBUG', 'Got the input JSON file.')
+        ciop.log('DEBUG', 'Got the input JSON file {}'.format(input.rstrip()))
         ciop.log('DEBUG', 'Converted input JSON file into dict: {}'.format(input_series_dict))
         keys=list(input_series_dict.keys())
         series = dict()
@@ -127,7 +127,7 @@ def main():
         metadata['identifier'] = output_name
         metadata['startdate'] = '{}-{}-{}T00:00:00Z'.format(input_series_dict['date'][:4],input_series_dict['date'][4:6],input_series_dict['date'][6:])
         metadata['enddate'] = '{}-{}-{}T23:59:59Z'.format(input_series_dict['date'][:4],input_series_dict['date'][4:6],input_series_dict['date'][6:])
-        metadata['wkt'] = input_series_dict['wkt']
+        
         metadata['no_data'] = '-10000'
         
         
@@ -153,7 +153,7 @@ def main():
         ds.FlushCache()
         ciop.log('INFO', 'COG created')
         
-        #metadata['wkt'] = get_raster_wkt(translated_tif)
+        metadata['wkt'] = get_raster_wkt(translated_tif)
         
         title = 'Sentinel-2 {} {} {} , full period {}'.format(base_name[7:17],
                                                               input_series_dict['index'], 
@@ -169,7 +169,7 @@ def main():
             file.write(bytes('geometry={}\n'.format(metadata['wkt']),encoding = 'utf-8'))
 
         
-        ciop.log('INFO', 'Publishing {}'.format(output_name))
+        ciop.log('INFO', 'Publishing {} files'.format(output_name))
         ciop.publish(os.path.join(ciop.tmp_dir,translated_tif), metalink=True)
         ciop.publish(os.path.join(ciop.tmp_dir,'{}.properties'.format(output_name)), metalink=True)
 
