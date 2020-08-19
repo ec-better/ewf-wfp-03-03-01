@@ -3,9 +3,13 @@
 import cioppy
 
 ciop = cioppy.Cioppy()
+
 import urllib.parse as urlparse
 import datetime
 import pandas as pd
+import gdal
+
+
 def log_input(reference):
     """
     Just logs the input reference, using the ciop.log function

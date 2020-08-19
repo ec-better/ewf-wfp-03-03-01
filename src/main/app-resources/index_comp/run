@@ -37,7 +37,7 @@ def clean_exit(exit_code):
            ERR_NO_OUTPUT: "Missing output"
     }
  
-    ciop.log(log_level, msg[exit_code])  
+    ciop.log(log_level, msg[exit_code])
 
 def main():
         
@@ -60,25 +60,32 @@ def main():
         keys=list(input_series_dict.keys())
         series = dict()
         
+        ciop.log('INFO', 'Loading {}'.format(input_series_dict[keys[0]]))
+        
         ds1=gdal.Open(get_vsi_url(input_series_dict[keys[0]], 
-                                              data_pipeline_parameters['username'], 
-                                              data_pipeline_parameters['api_key']))
+                                  data_pipeline_parameters['username'], 
+                                  data_pipeline_parameters['api_key']))
+        
         series[keys[0]]=ds1.GetRasterBand(1).ReadAsArray()
         geo_transform = ds1.GetGeoTransform()
         projection = ds1.GetProjection()
         
-
+        ciop.log('INFO', 'Loading {}'.format(input_series_dict[keys[1]]))
         
         ds2=gdal.Open(get_vsi_url(input_series_dict[keys[1]], 
                                               data_pipeline_parameters['username'], 
                                               data_pipeline_parameters['api_key']))
+                                              
         series[keys[1]]=ds2.GetRasterBand(1).ReadAsArray()
         
+        ciop.log('INFO', 'Computing {} on {}'.format(input_series_dict['index'],input_series_dict['date']))
         
         index_expression = lambda x,y: -10000 if(x+y)==0 else (x-y)/float(x+y)
         vfunc = np.vectorize(index_expression, otypes=[np.float])
 
         result = vfunc(series[keys[0]],series[keys[1]])
+        
+        ciop.log('INFO', 'Scaling {} on {}'.format(input_series_dict['index'],input_series_dict['date']))
         
         scale10k = lambda x: -10000 if x==-10000 or x<-1 or x>1 else x*10000
         vfunc_scale = np.vectorize(scale10k,otypes=[np.int16])
@@ -90,6 +97,10 @@ def main():
         
         
         base_name = (os.path.basename(input_series_dict[keys[0]])).split('.')[0]
+        output_name = 'S2_{}_{}_{}_{}'.format(base_name[7:17],
+                                              input_series_dict['index'], 
+                                              input_series_dict['date'],
+                                              input_series_dict['series_time_span'])
 
         drv = gdal.GetDriverByName('GTiff')
 
@@ -102,14 +113,23 @@ def main():
         ds.SetGeoTransform(geo_transform)
         ds.SetProjection(projection)
         ds.GetRasterBand(1).WriteArray(result_scaled, 0, 0)
-        ds.GetRasterBand(1).SetDescription('S2_{}_{}_{}'.format(base_name[7:17],input_series_dict['index'], input_series_dict['date']))
+        ds.GetRasterBand(1).SetDescription(output_name)
+        
         ###Added Metadata 
         metadata = dict()
         
         metadata['date'] = input_series_dict['date']
         metadata['index'] = input_series_dict['index']
+        metadata['series_time_span'] = input_series_dict['series_time_span'] 
         metadata[keys[0]] = input_series_dict[keys[0]]
         metadata[keys[1]] = input_series_dict[keys[1]]
+        
+        metadata['identifier'] = output_name
+        metadata['startdate'] = '{}-{}-{}T00:00:00Z'.format(input_series_dict['date'][:4],input_series_dict['date'][4:6],input_series_dict['date'][6:])
+        metadata['enddate'] = '{}-{}-{}T23:59:59Z'.format(input_series_dict['date'][:4],input_series_dict['date'][4:6],input_series_dict['date'][6:])
+        metadata['wkt'] = input_series_dict['wkt']
+        metadata['no_data'] = '-10000'
+        
         
         
         ds.GetRasterBand(1).SetMetadata(metadata)
@@ -121,16 +141,37 @@ def main():
                                                                         '-a_nodata -10000'))
         gdal.SetConfigOption('COMPRESS_OVERVIEW', 'DEFLATE')
         ds.BuildOverviews('NEAREST', [2,4,8,16,32])
-        output_name = 'S2_{}_{}_{}.tif'.format(base_name[7:17],input_series_dict['index'], input_series_dict['date'] )
-        gdal.Translate(output_name,
-                       ds,options=translate_options)
+        
+        
+        translated_tif = '{}.tif'.format(output_name)
+        ciop.log('INFO', 'Creating COG {}'.format(translated_tif))
+        
+        gdal.Translate(translated_tif,
+                       ds,
+                       options=translate_options)
+        
         ds.FlushCache()
+        ciop.log('INFO', 'COG created')
         
-    
+        #metadata['wkt'] = get_raster_wkt(translated_tif)
         
+        title = 'Sentinel-2 {} {} {} , full period {}'.format(base_name[7:17],
+                                                              input_series_dict['index'], 
+                                                              input_series_dict['date'],
+                                                              '-'.join(input_series_dict['series_time_span'].split('_')))
+
+        
+        
+        with open('{}.properties'.format(output_name), 'wb') as file:
+            
+            file.write(bytes('title={}\n'.format(title),encoding = 'utf-8'))
+            file.write(bytes('date={}/{}\n'.format(metadata['startdate'],metadata['enddate']),encoding = 'utf-8'))
+            file.write(bytes('geometry={}\n'.format(metadata['wkt']),encoding = 'utf-8'))
+
         
         ciop.log('INFO', 'Publishing {}'.format(output_name))
-        ciop.publish(os.path.join(ciop.tmp_dir,output_name ), metalink=True)
+        ciop.publish(os.path.join(ciop.tmp_dir,translated_tif), metalink=True)
+        ciop.publish(os.path.join(ciop.tmp_dir,'{}.properties'.format(output_name)), metalink=True)
 
 try:
     main()
