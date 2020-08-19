@@ -74,12 +74,12 @@ def main():
     
     search_input = pd.DataFrame(ciop.search(end_point=data_pipeline_parameters['end_point'],
                                       params=search_params,
-                                      output_fields='self,enclosure,title',
+                                      output_fields='self,enclosure,title,wkt',
                                       timeout='1200000',
                                       model='GeoTime',
                                       creds=creds))
     
-    #search_input.columns=['self','enclosure','title']
+    search_input.columns=['self','enclosure','title','wkt']
     
     inputs = search_input[((search_input['enclosure'].str.contains("tif")) & (search_input['title'].str.contains("synthetic") | search_input['title'].str.contains("native")))]
     inputs = inputs.reset_index(drop=True)
@@ -117,6 +117,8 @@ def main():
     
         band = inputs_time_filtered[inputs_time_filtered['name'].str.contains(bands[index][1])]
         b2_sorted = band.sort_values(by=['jday'],inplace=False, ignore_index=True)
+        
+        wkt = inputs_time_filtered['wkt'].iloc[0]
     
         date_list = b1_sorted['day'].unique().tolist()
         for date in date_list:
@@ -125,6 +127,9 @@ def main():
             series[bands[index][1]] = b2_sorted[b2_sorted['day'] == date].enclosure.tolist()[0]
             series['date'] = date
             series['index'] = index
+            series['wkt'] = wkt
+            series['series_time_span'] = search_params['start'][:10]+'_'+search_params['stop'][:10]
+            
             if series[bands[index][1]] !='':
                 ciop.publish((json.dumps(series) + '\n'), mode="silent")
 
