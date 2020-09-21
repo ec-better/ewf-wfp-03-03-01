@@ -73,22 +73,25 @@ def main():
         ciop.log('INFO', 'Loading {}'.format(input_series_dict[keys[1]]))
         
         ds2=gdal.Open(get_vsi_url(input_series_dict[keys[1]], 
-                                              data_pipeline_parameters['username'], 
-                                              data_pipeline_parameters['api_key']))
+                                  data_pipeline_parameters['username'], 
+                                  data_pipeline_parameters['api_key']))
                                               
         series[keys[1]]=ds2.GetRasterBand(1).ReadAsArray()
         
         ciop.log('INFO', 'Computing {} on {}'.format(input_series_dict['index'],input_series_dict['date']))
         
-        index_expression = lambda x,y: -10000 if(x+y)==0 else (x-y)/float(x+y)
+        #index_expression = lambda x,y: -10000 if(x+y)==0 else (x-y)/float(x+y)
+        index_expression = lambda x,y: -20000 if(x+y)==0 else (x-y)/float(x+y)
         vfunc = np.vectorize(index_expression, otypes=[np.float])
 
         result = vfunc(series[keys[0]],series[keys[1]])
         
         ciop.log('INFO', 'Scaling {} on {}'.format(input_series_dict['index'],input_series_dict['date']))
         
-        scale10k = lambda x: -10000 if x==-10000 or x<-1 or x>1 else x*10000
-        vfunc_scale = np.vectorize(scale10k,otypes=[np.int16])
+        #scale10k = lambda x: -10000 if x==-10000 or x<-1 or x>1 else x*10000
+        scale10k = lambda x: -20000 if x==-20000 or x<-1 or x>1 else x*10000
+        #vfunc_scale = np.vectorize(scale10k,otypes=[np.int16])
+        vfunc_scale = np.vectorize(scale10k)
         result_scaled = vfunc_scale(result)
         result = None   
         
@@ -128,7 +131,7 @@ def main():
         metadata['startdate'] = '{}-{}-{}T00:00:00Z'.format(input_series_dict['date'][:4],input_series_dict['date'][4:6],input_series_dict['date'][6:])
         metadata['enddate'] = '{}-{}-{}T23:59:59Z'.format(input_series_dict['date'][:4],input_series_dict['date'][4:6],input_series_dict['date'][6:])
         
-        metadata['no_data'] = '-10000'
+        metadata['no_data'] = '-20000'
         
         
         
@@ -137,8 +140,12 @@ def main():
         
         translate_options = gdal.TranslateOptions(gdal.ParseCommandLine('-co TILED=YES ' \
                                                                         '-co COPY_SRC_OVERVIEWS=YES ' \
+                                                                        '-co BIGTIFF=YES ' \
                                                                         '-co COMPRESS=LZW '\
-                                                                        '-a_nodata -10000'))
+                                                                        '-a_nodata -20000'))
+        
+        
+        
         gdal.SetConfigOption('COMPRESS_OVERVIEW', 'DEFLATE')
         ds.BuildOverviews('NEAREST', [2,4,8,16,32])
         
