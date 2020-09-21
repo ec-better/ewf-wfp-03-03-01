@@ -80,10 +80,12 @@ def main():
                                       creds=creds))
     
     search_input.columns=['self','enclosure','title']
-    ciop.log('INFO', 'Found {} dataset'.format(len(search_input)))
+    #ciop.log('INFO', 'Found {} dataset'.format(len(search_input)))
     
     inputs = search_input[((search_input['enclosure'].str.contains("tif")) & (search_input['title'].str.contains("synthetic") | search_input['title'].str.contains("native")))]
     inputs = inputs.reset_index(drop=True)
+    
+    ciop.log('INFO', 'Found {} dataset'.format(len(inputs)))
     
     
     inputs = inputs.merge(inputs.apply(lambda row: name_date_from_enclosure(row), axis=1),
