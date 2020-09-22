@@ -85,6 +85,7 @@ def get_raster_wkt(raster):
     lrx = ulx + (src.RasterXSize * xres)
     lry = uly + (src.RasterYSize * yres)
 
+
     from osgeo import ogr
     from osgeo import osr
 
@@ -98,13 +99,13 @@ def get_raster_wkt(raster):
 
     # Create the transform - this can be used repeatedly
     transform = osr.CoordinateTransformation(source, target)
-
+    
 #    return box(transform.TransformPoint(ulx, lry)[0], 
 #       transform.TransformPoint(ulx, lry)[1],
 #       transform.TransformPoint(lrx, uly)[0],
 #       transform.TransformPoint(lrx, uly)[1]).wkt
 
-    return box(transform.TransformPoint(uly, lrx)[0],
-       transform.TransformPoint(uly, lrx)[1],
-       transform.TransformPoint(lry, ulx)[0],
-       transform.TransformPoint(lry, ulx)[1]).wkt
+    return box(transform.TransformPoint(ulx, lry)[1], 
+       transform.TransformPoint(ulx, lry)[0],
+       transform.TransformPoint(lrx, uly)[1],
+       transform.TransformPoint(lrx, uly)[0]).wkt
